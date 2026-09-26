@@ -1,0 +1,7 @@
+apiVersion: v2
+name: jobpilot-controller
+description: JobPilot P0 Workload Sync Controller
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.32.0-0"

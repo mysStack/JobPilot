@@ -1,0 +1,59 @@
+replicaCount: 2
+
+image:
+  repository: harbor.example.com/jobpilot/controller
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+managedNamespaces: "*"
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+service:
+  type: ClusterIP
+  metricsPort: 8080
+  webhookPort: 443
+
+webhook:
+  path: /validate-jobpilot-io-v1-job
+  failurePolicy: Fail
+  timeoutSeconds: 5
+  tlsSecretName: ""
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

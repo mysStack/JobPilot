@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "jobpilot-controller.fullname" . }}
+  labels:
+    {{- include "jobpilot-controller.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: metrics
+      port: {{ .Values.service.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+    - name: webhook
+      port: {{ .Values.service.webhookPort }}
+      targetPort: webhook
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "jobpilot-controller.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

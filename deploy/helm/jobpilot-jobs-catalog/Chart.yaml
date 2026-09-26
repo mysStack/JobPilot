@@ -1,0 +1,7 @@
+apiVersion: v2
+name: jobpilot-jobs-catalog
+description: JobPilot CronJob catalog and one-time Kyverno distribution policy
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.32.0-0"

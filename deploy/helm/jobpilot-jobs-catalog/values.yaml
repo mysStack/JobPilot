@@ -1,0 +1,47 @@
+targetNamespaceSelector:
+  key: jobpilot.io/cronjob-catalog
+  value: enabled
+
+jobs:
+  inventorySync:
+    enabled: true
+    name: inventory-sync
+    schedule: "*/5 * * * *"
+    bootstrapImage: harbor.example.com/wms/wms:v0.0.0
+    workloadRef:
+      kind: Deployment
+      name: wms
+      sourceContainer: wms
+      targetContainer: job-runner
+    command: []
+    args:
+      - --mode=job
+      - --job=inventory-sync
+    env: []
+    resources: {}
+    backoffLimit: 1
+    activeDeadlineSeconds: 1800
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+
+  timeoutOrder:
+    enabled: false
+    name: timeout-order
+    schedule: "*/10 * * * *"
+    bootstrapImage: harbor.example.com/wms/wms:v0.0.0
+    workloadRef:
+      kind: Deployment
+      name: wms
+      sourceContainer: wms
+      targetContainer: job-runner
+    args:
+      - --mode=job
+      - --job=timeout-order
+    env: []
+    resources: {}
+    backoffLimit: 1
+    activeDeadlineSeconds: 1800
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3

@@ -1,0 +1,89 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ include "jobpilot-jobs-catalog.fullname" . }}
+  annotations:
+    policies.kyverno.io/title: JobPilot CronJob catalog distribution
+    policies.kyverno.io/category: JobPilot
+    policies.kyverno.io/description: >-
+      Generates the JobPilot CronJob catalog once in explicitly labelled
+      namespaces. Runtime image and bootstrap fields are owned by JobPilot.
+spec:
+  background: true
+  rules:
+{{- range $key, $job := .Values.jobs }}
+{{- if $job.enabled }}
+    - name: generate-{{ $job.name }}
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              selector:
+                matchLabels:
+                  {{ $.Values.targetNamespaceSelector.key | quote }}: {{ $.Values.targetNamespaceSelector.value | quote }}
+      generate:
+        synchronize: false
+        apiVersion: batch/v1
+        kind: CronJob
+        name: {{ $job.name | quote }}
+        namespace: '{{ "{{request.object.metadata.name}}" }}'
+        data:
+          apiVersion: batch/v1
+          kind: CronJob
+          metadata:
+            labels:
+              jobpilot.io/managed-by: catalog
+              jobpilot.io/catalog-release: {{ $.Release.Name | quote }}
+            annotations:
+              jobpilot.io/follow-workload: "true"
+              jobpilot.io/workload-kind: {{ $job.workloadRef.kind | quote }}
+              jobpilot.io/workload-name: {{ $job.workloadRef.name | quote }}
+              jobpilot.io/source-container-name: {{ $job.workloadRef.sourceContainer | quote }}
+              jobpilot.io/target-container-name: {{ $job.workloadRef.targetContainer | quote }}
+          spec:
+            schedule: {{ $job.schedule | quote }}
+            suspend: true
+            concurrencyPolicy: {{ default "Allow" $job.concurrencyPolicy | quote }}
+            {{- with $job.successfulJobsHistoryLimit }}
+            successfulJobsHistoryLimit: {{ . }}
+            {{- end }}
+            {{- with $job.failedJobsHistoryLimit }}
+            failedJobsHistoryLimit: {{ . }}
+            {{- end }}
+            jobTemplate:
+              spec:
+                {{- with $job.backoffLimit }}
+                backoffLimit: {{ . }}
+                {{- end }}
+                {{- with $job.activeDeadlineSeconds }}
+                activeDeadlineSeconds: {{ . }}
+                {{- end }}
+                template:
+                  metadata:
+                    labels:
+                      jobpilot.io/managed-by: catalog
+                      jobpilot.io/task: {{ $job.name | quote }}
+                  spec:
+                    restartPolicy: Never
+                    containers:
+                      - name: {{ $job.workloadRef.targetContainer | quote }}
+                        image: {{ $job.bootstrapImage | quote }}
+                        {{- with $job.command }}
+                        command:
+                          {{- toYaml . | nindent 26 }}
+                        {{- end }}
+                        {{- with $job.args }}
+                        args:
+                          {{- toYaml . | nindent 26 }}
+                        {{- end }}
+                        {{- with $job.env }}
+                        env:
+                          {{- toYaml . | nindent 26 }}
+                        {{- end }}
+                        {{- with $job.resources }}
+                        resources:
+                          {{- toYaml . | nindent 26 }}
+                        {{- end }}
+{{- end }}
+{{- end }}
