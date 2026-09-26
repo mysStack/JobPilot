@@ -41,6 +41,9 @@ webhooks:
     failurePolicy: {{ .Values.webhook.failurePolicy }}
     matchPolicy: Equivalent
     timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
+    objectSelector:
+      matchLabels:
+        jobpilot.io/managed-by: catalog
     clientConfig:
       caBundle: {{ $caCert | b64enc | quote }}
       service:
