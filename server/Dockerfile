@@ -9,6 +9,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' -o /out/jobpilo
 FROM docker-pull.ygxz.in/library/alpine:3.21
 
 COPY --from=build /out/jobpilot-controller /jobpilot-controller
-RUN addgroup -S jobpilot && adduser -S -G jobpilot jobpilot
-USER jobpilot:jobpilot
+USER 65532:65532
 ENTRYPOINT ["/jobpilot-controller"]
